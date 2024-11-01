@@ -242,21 +242,7 @@ try {
                 ?>
             </table>
 
-            <table>
-                <tr>
-                    <th>Filtered Results</th>
-                </tr>
-                <?php
-                // If no results, display a message
-                if (count($rows) > 0) {
-                    foreach ($rows as $row) {
-                        echo "<tr><td>" . $row['employee_name'] . " - " . $row['leave_type'] . "</td></tr>";
-                    }
-                } else {
-                    echo "<tr><td class='empty-message'>No records found</td></tr>";
-                }
-                ?>
-            </table>
+            
         </div>
     </main>
 </body>
