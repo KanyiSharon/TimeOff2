@@ -121,16 +121,16 @@ try {
                 </div>
 
                 <div class="flex items-end">
-                    <button style="transform:translateY(13px);border-radius:0 20px 20px 0;" type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <button style="transform:translateY(13px);border-radius:0 20px 20px 0;" type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-500 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                         Search
                     </button>
                 </div>
             </form>
 
             <!-- Display Month and Leave Count -->
-            <div class="mb-4">
-                <p class="text-gray-700 font-medium">Selected Month: <span class="font-semibold"><?= htmlspecialchars($monthName) ?></span></p>
-                <p class="text-gray-700 font-medium">Total Leaves in Month: <span class="font-semibold"><?= htmlspecialchars($leaveCount) ?></span></p>
+            <div style="transform:translateX(800px); border-radius:20px 0 0 20px;padding-left:40px;" class="mb-4 bg-green-500">
+                <p  class="  font-medium text-left">Selected Month: <span class=" "><?= htmlspecialchars($monthName) ?></span></p>
+                <p  class=" font-medium">Total Leaves in Month: <span class=" "><?= htmlspecialchars($leaveCount) ?></span></p>
             </div>
 
             <!-- Table Display -->
