@@ -33,7 +33,7 @@ try {
     $stmt->execute();
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);// Fetch results as associative array
 
-    // Query to count total leaves
+    // Query to count total leaves in as filtereed by month and employee name
     $countSql = "SELECT COUNT(*) FROM leaverequests WHERE 1=1";
     if ($month > 0 && $month <= 12) {
         $countSql .= " AND month(start_date) = :month";
@@ -116,12 +116,12 @@ try {
 
                 <div>
                     <label for="employee_name" class="block text-sm font-medium text-gray-700">Employee Name:</label>
-                    <input type="text" name="employee_name" id="employee_name" value="<?= htmlspecialchars($employee_name) ?>" 
+                    <input style="width:200px" placeholder="Search Employee By Name" type="text" name="employee_name" id="employee_name" value="<?= htmlspecialchars($employee_name) ?>" 
                            class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
                 </div>
 
                 <div class="flex items-end">
-                    <button style="transform:translateY(13px);" type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <button style="transform:translateY(13px);border-radius:0 20px 20px 0;" type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                         Search
                     </button>
                 </div>

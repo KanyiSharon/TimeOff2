@@ -2,9 +2,11 @@
 include 'database.php';
 
 try {
+    // Establish a connection to the database using PDO
     $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+    
+    // Retrieve search term from GET request, if provided
     $search = isset($_GET['search']) ? $_GET['search'] : '';
 
     // Fetch all results initially
@@ -85,6 +87,7 @@ $conn = null;
                 <form method="GET" action="" class="mb-6 form">
                     <div class="relative max-w-md">
                         <input 
+                            style="width:350px;"
                             type="text" 
                             name="search" 
                             placeholder="Search Employee by ID or Name"
@@ -95,7 +98,7 @@ $conn = null;
                             <circle cx="11" cy="11" r="8"></circle>
                             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
-                        <button type="submit" class="absolute right-0 top-0 h-full px-4 bg-green-500 text-white rounded-r-md hover:bg-green-600 focus:outline-none">
+                        <button style="border-radius:0 20px 20px 0px;" type="submit" class="absolute right-0 top-0 h-full px-4 bg-green-500 text-white rounded-r-md hover:bg-green-600 focus:outline-none">
                             Search
                         </button>
                     </div>
