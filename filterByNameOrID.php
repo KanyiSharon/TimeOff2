@@ -36,185 +36,107 @@ $conn = null;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statistics Page</title>
-    <!-- Bootstrap Icons CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <title>TimeOff - Leave Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/lucide-icons@0.263.1/dist/esm/icons/search.js" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
         }
-
-        body {
-            min-height: 100vh;
+        main{
+            width: 90%;
         }
-
-        .navbar {
-            background-color: #1a3a1a;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
-        }
-
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .logo {
-            width: 40px;
-            height: 40px;
-        }
-
-        .brand-name {
-            color: white;
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            font-size: 1rem;
-            transition: color 0.3s ease;
-        }
-
-        .nav-links a:hover {
-            color: #a8c9a1;
-        }
-
-        .content-container {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background: linear-gradient(135deg, #a8c9a1 0%, #86a886 100%);
-            backdrop-filter: blur(10px);
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        h2 {
-            color: #1a3a1a;
-            text-align: center;
-            margin-bottom: 2rem;
-            font-size: 1.8rem;
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 40%;
-            border-collapse: collapse;
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 5px;
-            overflow: hidden;
-        }
-
-        th, td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid rgba(26, 58, 26, 0.1);
-        }
-
-        th {
-            background-color: #1a3a1a;
-            color: white;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-        }
-
-        tr:hover {
-            background-color: rgba(255, 255, 255, 0.95);
-        }
-
-        .empty-message {
-            text-align: center;
-            padding: 2rem;
-            color: #666;
-            font-style: italic;
-        }
-
-        @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                padding: 1rem;
-                gap: 1rem;
-            }
-
-            .nav-links {
-                flex-direction: column;
-                align-items: center;
-                gap: 1rem;
-            }
-
-            .content-container {
-                margin: 2rem 1rem;
-                padding: 1rem;
-            }
-
-            th, td {
-                padding: 0.8rem;
-                font-size: 0.9rem;
-            }
-        }
-
-        div[style="overflow-x:auto;"] {
-            max-height: 400px;
-            overflow-y: auto;
+        nav a:hover{
+            box-shadow: 0 0 10px 0 rgba(0,0,0,0.7);
         }
     </style>
-
 </head>
-<body>
-<nav class="navbar">
-        <div class="logo-container">
-            <img src="Timeoff[1].jpg" alt="TimeOff Logo" class="logo">
-            <span class="brand-name">TimeOff</span>
-        </div>
-        <div class="nav-links">
-            <a href="filterRequests.php">Filter requests</a>
-            <a href="LeaveRequest.php">Total leaves in a month</a>
-            <a href="#history">Leave History</a>
+<body class="min-h-screen bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-green-500 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <img src="Timeoff[1].jpg" alt="TimeOff Logo" class="w-10 h-10">
+                    <span class="text-white text-2xl font-semibold">TimeOff</span>
+                </div>
+                <div class="flex space-x-4">
+                    <a style="background-color:white;color:green;border-radius:10px;" href="filterByNameOrID.php" class="text-white hover:bg-black-600 px-3 py-2 rounded-md">
+                        Search Employee Leave Records
+                    </a>
+                    <a  style="background-color:white;color:green;border-radius:10px;" href="filterByMonthAndName.php" class="text-white hover:bg-green-600 px-3 py-2 rounded-md">
+                        View Monthly Leave Summary
+                    </a>
+                </div>
+            </div>
         </div>
     </nav>
-    <main>
-        <form method="GET" action="">
-            <input type="text" name="search" placeholder="Search Employee by ID or Name">
-            <button type="submit"><i class="bi bi-search"></i>Search</button>
-        </form>
-        <div style="overflow-x:auto;">
-            <table>
-                <tr>
-                    <th>Employee ID</th>
-                    <th>Employee Name</th>
-                    <th>Leave Type</th>
-                    <th>Start Date</th>
-                    <th>End Date</th>
-                </tr>
-                <?php
-                if (count($filteredResults) > 0) {
-                    foreach ($filteredResults as $row) {
-                        echo "<tr><td>" . $row["employee_id"] . "</td><td>" . $row["employee_name"] . "</td><td>" . $row["leave_type"] . "</td><td>" . $row["start_date"] . "</td><td>" . $row["end_date"] . "</td></tr>";
-                    }
-                } else {
-                    echo "<tr><td colspan='5'>No results found</td></tr>";
-                }
-                ?>
-            </table>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="p-6">
+                <h2 class="text-xl font-semibold mb-6">Employee Leave Records</h2>
+                
+                <!-- Search Form -->
+                <form method="GET" action="" class="mb-6 form">
+                    <div class="relative max-w-md">
+                        <input 
+                            type="text" 
+                            name="search" 
+                            placeholder="Search Employee by ID or Name"
+                            value="<?php echo htmlspecialchars($search); ?>"
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="search-icon h-5 w-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <button type="submit" class="absolute right-0 top-0 h-full px-4 bg-green-500 text-white rounded-r-md hover:bg-green-600 focus:outline-none">
+                            Search
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-600">Employee ID</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-600">Employee Name</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-600">Leave Type</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-600">Start Date</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-600">End Date</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <?php if (count($filteredResults) > 0): ?>
+                                <?php foreach ($filteredResults as $row): ?>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4"><?php echo htmlspecialchars($row["employee_id"]); ?></td>
+                                        <td class="px-6 py-4"><?php echo htmlspecialchars($row["employee_name"]); ?></td>
+                                        <td class="px-6 py-4">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                                <?php echo htmlspecialchars($row["leave_type"]); ?>
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4"><?php echo htmlspecialchars($row["start_date"]); ?></td>
+                                        <td class="px-6 py-4"><?php echo htmlspecialchars($row["end_date"]); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="5" class="px-6 py-4 text-center text-gray-500 italic">No results found</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </main>
 </body>

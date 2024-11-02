@@ -7,12 +7,12 @@ try {
 } catch (PDOException $e) {
     echo "CONNECTION FAILED: " . $e->getMessage();
 }
-
-// CHECKS IF MONTH AND NAME ARE AVAILABLE
-$month = isset($_POST['month']) ? (INT)$_POST['month'] : 0;
+// Retrieve filter values from POST request, defaulting to 0 for month and an empty string for employee name
+$month = isset($_POST['month']) ? (int)$_POST['month'] : 0;
 $employee_name = isset($_POST['employee_name']) ? trim($_POST['employee_name']) : '';
 
 try {
+    // Query for retrieving records
     $sql = "SELECT * FROM leaverequests WHERE 1=1";
     if ($month > 0 && $month <= 12) {
         $sql .= " AND month(start_date) = :month";
@@ -22,17 +22,38 @@ try {
     }
 
     $stmt = $conn->prepare($sql);
-    
     if ($month > 0 && $month <= 12) {
         $stmt->bindParam(':month', $month);
     }
+     // Add employee name filter to query if an employee name is entered
     if (!empty($employee_name)) {
-        $name_param = "%$employee_name%"; // Use wildcard for LIKE search
+        $name_param = "%$employee_name%";
         $stmt->bindParam(':employee_name', $name_param);
     }
-    
     $stmt->execute();
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);// Fetch results as associative array
+
+    // Query to count total leaves
+    $countSql = "SELECT COUNT(*) FROM leaverequests WHERE 1=1";
+    if ($month > 0 && $month <= 12) {
+        $countSql .= " AND month(start_date) = :month";
+    }
+    if (!empty($employee_name)) {
+        $countSql .= " AND employee_name LIKE :employee_name";
+    }
+
+    $countStmt = $conn->prepare($countSql);
+    if ($month > 0 && $month <= 12) {
+        $countStmt->bindParam(':month', $month);
+    }
+    if (!empty($employee_name)) {
+        $countStmt->bindParam(':employee_name', $name_param);
+    }
+    $countStmt->execute();
+    $leaveCount = $countStmt->fetchColumn();
+
+     // Get the month name for display purposes; defaults to 'All Months' if no specific month is selected
+    $monthName = $month > 0 ? date('F', mktime(0, 0, 0, $month, 1)) : 'All Months';
 } catch (PDOException $e) {
     echo "Error: " . $e->getMessage();
 }
@@ -43,206 +64,110 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statistics page</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <title>Monthly Leave Summary</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Your existing styles here */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
+         main{
+            width: 90%;
         }
-
-        body {
-            min-height: 100vh;
-        }
-
-        .navbar {
-            background-color: #1a3a1a;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
-        }
-
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .logo {
-            width: 40px;
-            height: 40px;
-        }
-
-        .brand-name {
-            color: white;
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            font-size: 1rem;
-            transition: color 0.3s ease;
-        }
-
-        .nav-links a:hover {
-            color: #a8c9a1;
-        }
-
-        .content-container {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background: linear-gradient(135deg, #a8c9a1 0%, #86a886 100%);
-            backdrop-filter: blur(10px);
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        h2 {
-            color: #1a3a1a;
-            text-align: center;
-            margin-bottom: 2rem;
-            font-size: 1.8rem;
-        }
-
-        .table-container {
-            overflow-x: auto;
-            display: flex;
-            justify-content: space-between; /* Align tables side by side */
-        }
-
-        table {
-            width: 48%; /* Adjust width to fit both tables */
-            border-collapse: collapse;
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 5px;
-            overflow: hidden;
-            margin-right: 2%; /* Space between tables */
-        }
-
-        th, td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid rgba(26, 58, 26, 0.1);
-        }
-
-        th {
-            background-color: #1a3a1a;
-            color: white;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-        }
-
-        tr:hover {
-            background-color: rgba(255, 255, 255, 0.95);
-        }
-
-        .empty-message {
-            text-align: center;
-            padding: 2rem;
-            color: #666;
-            font-style: italic;
-        }
-
-        @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                padding: 1rem;
-                gap: 1rem;
-            }
-
-            .nav-links {
-                flex-direction: column;
-                align-items: center;
-                gap: 1rem;
-            }
-
-            .content-container {
-                margin: 2rem 1rem;
-                padding: 1rem;
-            }
-
-            th, td {
-                padding: 0.8rem;
-                font-size: 0.9rem;
-            }
-        }
-
-        div[style="overflow-x:auto;"] {
-            max-height: 400px;
-            overflow-y: auto;
+        nav a:hover{
+            box-shadow: 0 0 10px 0 rgba(0,0,0,0.7);
         }
     </style>
 </head>
-<body>
-
-    <nav class="navbar">
-        <div class="logo-container">
-            <img src="Timeoff[1].jpg" alt="TimeOff Logo" class="logo">
-            <span class="brand-name">TimeOff</span>
-        </div>
-        <div class="nav-links">
-            <a href="filterRequests.php">Filter requests</a>
-            <a href="LeaveRequest.php">Total leaves in a month</a>
-            <a href="#history">Leave History</a>
+<body class="min-h-screen bg-gray-50">
+    <nav class="bg-green-500 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <img src="Timeoff[1].jpg" alt="TimeOff Logo" class="w-10 h-10">
+                    <span class="text-white text-2xl font-semibold">TimeOff</span>
+                </div>
+                <div class="flex space-x-4">
+                    <a style="background-color:white;color:green;border-radius:10px;" href="filterByNameOrID.php" class="text-white bg-white hover:bg-gray-200 px-3 py-2 rounded-md text-green-600">
+                        Search Employee Leave Records
+                    </a>
+                    <a style="background-color:white;color:green;border-radius:10px;" href="filterByMonthAndName.php" class="text-white bg-white hover:bg-gray-200 px-3 py-2 rounded-md text-green-600">
+                        View Monthly Leave Summary
+                    </a>
+                </div>
+            </div>
         </div>
     </nav>
-    <main>
-        <form method="POST">
-            <label style="display:inline; font-size: 1rem; font-weight: bold;" for="month">Select a month:</label>
-            <select name="month" id="month">
-                <option value="0" <?= $month === 0 ? 'selected' : '' ?>>All Months</option>
-                <?php
-                for ($i = 1; $i <= 12; $i++) {
-                    $selected = ($i == $month) ? 'selected' : ''; // Set selected if it matches the month
-                    echo "<option value=\"$i\" $selected>" . date('F', mktime(0, 0, 0, $i, 1)) . "</option>";
-                }
-                ?>
-            </select>
-            <label style="display:inline; font-size: 1rem; font-weight: bold;" for="employee_name">Employee Name:</label>
-            <input type="text" name="employee_name" id="employee_name" value="<?= htmlspecialchars($employee_name) ?>">
-            <button type="submit">Filter</button>
-        </form>
 
-        <div class="table-container">
-            <table>
-                <tr>
-                    <th>Employee Id</th>
-                    <th>Employee Name</th>
-                    <th>Leave Type</th>
-                    <th>Start Date</th>
-                    <th>End Date</th>
-                </tr>
-                <?php
-                if (count($rows) > 0) {
-                    foreach ($rows as $row) {
-                        echo "<tr><td>" . $row['employee_id'] . "</td>";
-                        echo "<td>" . $row['employee_name'] . "</td>";
-                        echo "<td>" . $row['leave_type'] . "</td>";
-                        echo "<td>" . $row['start_date'] . "</td>";
-                        echo "<td>" . $row['end_date'] . "</td></tr>";
-                    }
-                } else {
-                    echo "<tr><td colspan='5' class='empty-message'>No records found for this month</td></tr>";
-                }
-                ?>
-            </table>
+    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden p-6">
+            <h2 class="text-xl font-semibold mb-6">Filter Leave Records by Month and Name</h2>
 
-            
+            <!-- Filter Form -->
+            <form method="POST" class="mb-6 flex items-center space-x-4">
+                <div>
+                    <label for="month" class="block text-sm font-medium text-gray-700">Select a month:</label>
+                    <select name="month" id="month" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                        <option value="0" <?= $month === 0 ? 'selected' : '' ?>>All Months</option>
+                        <?php
+                        for ($i = 1; $i <= 12; $i++) {
+                            $selected = ($i == $month) ? 'selected' : '';
+                            echo "<option value=\"$i\" $selected>" . date('F', mktime(0, 0, 0, $i, 1)) . "</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="employee_name" class="block text-sm font-medium text-gray-700">Employee Name:</label>
+                    <input type="text" name="employee_name" id="employee_name" value="<?= htmlspecialchars($employee_name) ?>" 
+                           class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                </div>
+
+                <div class="flex items-end">
+                    <button style="transform:translateY(13px);" type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        Search
+                    </button>
+                </div>
+            </form>
+
+            <!-- Display Month and Leave Count -->
+            <div class="mb-4">
+                <p class="text-gray-700 font-medium">Selected Month: <span class="font-semibold"><?= htmlspecialchars($monthName) ?></span></p>
+                <p class="text-gray-700 font-medium">Total Leaves in Month: <span class="font-semibold"><?= htmlspecialchars($leaveCount) ?></span></p>
+            </div>
+
+            <!-- Table Display -->
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse bg-white shadow-md rounded-lg">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-600">Employee ID</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-600">Employee Name</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-600">Leave Type</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-600">Start Date</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-600">End Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <?php if (count($rows) > 0): ?>
+                            <?php foreach ($rows as $row): ?>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4"><?php echo htmlspecialchars($row["employee_id"]); ?></td>
+                                    <td class="px-6 py-4"><?php echo htmlspecialchars($row["employee_name"]); ?></td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                            <?php echo htmlspecialchars($row["leave_type"]); ?>
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4"><?php echo htmlspecialchars($row["start_date"]); ?></td>
+                                    <td class="px-6 py-4"><?php echo htmlspecialchars($row["end_date"]); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="5" class="px-6 py-4 text-center text-gray-500 italic">No records found for this month</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </main>
 </body>
